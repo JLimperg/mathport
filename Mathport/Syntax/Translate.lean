@@ -3,11 +3,13 @@ Copyright (c) 2021 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Daniel Selsam
 -/
+import Mathport.Binary.Basic
 import Mathport.Syntax.Translate.Basic
 import Mathport.Syntax.Translate.Attributes
 import Mathport.Syntax.Translate.Notation
 import Mathport.Syntax.Translate.Parser
 import Mathport.Syntax.Translate.Tactic
+import Mathport.Syntax.Translate.TacticInvocation
 import Mathport.Syntax.Transform
 import Init.Data.Array.QSort
 
@@ -54,3 +56,15 @@ def AST3toData4 (ast : AST3) : (pcfg : Path.Config) → CommandElabM Data4 :=
 
 def tactic3toSyntax (containingFile : AST3) (tac3 : Spanned AST3.Tactic) : (pcfg : Path.Config) → CommandElabM Syntax.Tactic :=
   (Translate.trTactic tac3).run #[] containingFile.indexed_nota containingFile.indexed_cmds
+
+def trTacticInvocations (config : Config) (path : Path) (containingFile : AST3)
+    (invocations : Array AST3.TacticInvocation) :
+    CommandElabM Format := do
+  println! "begin tactics"
+  println! "translating {invocations.size} tactics"
+  let fmt ←
+    (Translate.TacticInvocation.trTacticInvocations { path, config } invocations).run
+      #[] containingFile.indexed_nota containingFile.indexed_cmds
+      config.pathConfig
+  println! "end tactics"
+  return fmt
